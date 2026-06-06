@@ -15,25 +15,27 @@
 package main
 
 import (
-	"fmt"
 	"log"
+    "fmt"
+	"go-micro.dev/v4"
+	"ecommerce-microservices/MicroServicios/product-service/handler"
+	pb "ecommerce-microservices/proto/product"
 )
 
 func main() {
 	fmt.Println("=== Product Service ===")
 	fmt.Println("Servicio de catálogo e inventario")
+	service := micro.NewService(
+		micro.Name("product-service"),
+		micro.Version("1.0.0"),
+	)
 
-	// TODO (Persona 4): Implementar el servidor Go Micro
-	//
-	//   service := micro.NewService(
-	//       micro.Name("product-service"),
-	//       micro.Version("1.0.0"),
-	//   )
-	//   service.Init()
-	//   pb.RegisterProductServiceHandler(service.Server(), &handler.ProductHandler{})
-	//   if err := service.Run(); err != nil {
-	//       log.Fatal(err)
-	//   }
+	service.Init()
 
-	log.Println("Product Service - stub listo para implementación por Persona 4")
+	pb.RegisterProductServiceHandler(service.Server(), handler.NewProductHandler())
+
+	if err := service.Run(); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("Product Service - stub listo")
 }
