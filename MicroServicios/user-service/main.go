@@ -18,6 +18,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"go-micro.dev/v4"
+	"ecommerce-microservices/MicroServicios/user-service/handler"
+	pb "ecommerce-microservices/proto/user"
 )
 
 func main() {
@@ -35,6 +38,18 @@ func main() {
 	//   if err := service.Run(); err != nil {
 	//       log.Fatal(err)
 	//   }
+	service := micro.NewService(
+		micro.Name("user-service"),
+		micro.Version("1.0.0"),
+	)
+
+	service.Init()
+
+	pb.RegisterUserServiceHandler(service.Server(), handler.NewUserHandler())
+
+	if err := service.Run(); err != nil {
+		log.Fatal(err)
+	}
 
 	log.Println("User Service - stub listo para implementación por Persona 4")
 }
