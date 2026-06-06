@@ -90,6 +90,7 @@ func main() {
 				orders.POST("", handleCreateOrder)
 				orders.GET("", handleListOrders)
 				orders.GET("/:id", handleGetOrder)
+				orders.PATCH("/:id/status", handleUpdateOrderStatus)
 			}
 			
 			protected.GET("/me/:id", handleGetUser)
@@ -97,7 +98,7 @@ func main() {
 	}
 	// 4. Iniciar en puerto 8080
 	r.Run(":8080")
-	log.Println("API Gateway - stub listo para implementación por Persona 5")
+	log.Println("API Gateway iniciado")
 }
 
 // --- Middlewares ---
@@ -205,6 +206,36 @@ func handleListOrders(c *gin.Context) {
 func handleGetOrder(c *gin.Context) {
 	id := c.Param("id")
 	res, err := orderClient.GetOrder(context.Background(), &pb_order.GetOrderRequest{OrderId: id})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, res)
+}
+
+func handleUpdateOrderStatus(c *gin.Context) {
+	id := c.Param("id")
+	var body struct {
+		Status    string `json:"status"`
+		NewStatus string `json:"new_status"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	status := body.Status
+	if status == "" {
+		status = body.NewStatus
+	}
+	if status == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "El campo 'status' o 'new_status' es requerido"})
+		return
+	}
+
+	res, err := orderClient.UpdateOrderStatus(context.Background(), &pb_order.UpdateOrderStatusRequest{
+		OrderId:   id,
+		NewStatus: status,
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

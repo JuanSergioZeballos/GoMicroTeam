@@ -17,8 +17,6 @@ import (
 
 // UserHandler implementa la interfaz UserServiceHandler generada por protobuf.
 type UserHandler struct {
-	// TODO (Persona 4): Agregar campos necesarios
-	// - users map[string]*pb.User  (almacén en memoria)
 	mu        sync.RWMutex
 	users     map[string]*pb.User
 	passwords map[string]string
@@ -41,10 +39,6 @@ func NewUserHandler() *UserHandler {
 
 	return h
 }
-// Register registra un nuevo usuario en el sistema.
-// func (h *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest, rsp *pb.RegisterResponse) error {
-//     return nil
-// }
 
 func (h *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest, rsp *pb.RegisterResponse) error {
 	h.mu.Lock()
@@ -76,12 +70,6 @@ func (h *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest, rsp
 	return nil
 }
 
-
-// Login autentica un usuario y devuelve un token.
-// func (h *UserHandler) Login(ctx context.Context, req *pb.LoginRequest, rsp *pb.LoginResponse) error {
-//     return nil
-// }
-
 func (h *UserHandler) Login(ctx context.Context, req *pb.LoginRequest, rsp *pb.LoginResponse) error {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -104,11 +92,6 @@ func (h *UserHandler) Login(ctx context.Context, req *pb.LoginRequest, rsp *pb.L
 	return nil
 }
 
-// GetUser obtiene el perfil de un usuario por su ID.
-// func (h *UserHandler) GetUser(ctx context.Context, req *pb.GetUserRequest, rsp *pb.GetUserResponse) error {
-//     return nil
-// }
-
 func (h *UserHandler) GetUser(ctx context.Context, req *pb.GetUserRequest, rsp *pb.GetUserResponse) error {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -121,11 +104,6 @@ func (h *UserHandler) GetUser(ctx context.Context, req *pb.GetUserRequest, rsp *
 	}
 	return nil
 }
-
-// ListUsers lista todos los usuarios registrados.
-// func (h *UserHandler) ListUsers(ctx context.Context, req *pb.ListUsersRequest, rsp *pb.ListUsersResponse) error {
-//     return nil
-// }
 
 func (h *UserHandler) ListUsers(ctx context.Context, req *pb.ListUsersRequest, rsp *pb.ListUsersResponse) error {
 	h.mu.RLock()

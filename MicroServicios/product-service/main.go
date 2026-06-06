@@ -34,8 +34,9 @@ func main() {
 
 	pb.RegisterProductServiceHandler(service.Server(), handler.NewProductHandler())
 
+	log.Println("Product Service iniciado - registrado en service registry")
+
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Product Service - stub listo")
 }

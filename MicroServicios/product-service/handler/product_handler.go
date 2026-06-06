@@ -8,18 +8,19 @@ package handler
 
 import (
 	"context"
+	"log"
 	"sync"
 
 	pb "ecommerce-microservices/proto/product"
 )
+
 // ProductHandler implementa la interfaz ProductServiceHandler generada por protobuf.
 type ProductHandler struct {
-	// TODO (Persona 4): Agregar campos necesarios
-	// - products map[string]*pb.Product  (catálogo en memoria)
 	mu       sync.RWMutex
 	products map[string]*pb.Product
 }
 
+// NewProductHandler crea un nuevo ProductHandler con datos de prueba precargados.
 func NewProductHandler() *ProductHandler {
 	h := &ProductHandler{
 		products: make(map[string]*pb.Product),
@@ -29,14 +30,11 @@ func NewProductHandler() *ProductHandler {
 	h.products["P2"] = &pb.Product{Id: "P2", Name: "Mouse Wireless", Description: "Logitech G305", Price: 40.0, Stock: 50, Category: "Peripherals"}
 	h.products["P3"] = &pb.Product{Id: "P3", Name: "Teclado Mecánico", Description: "Keychron K2", Price: 90.0, Stock: 20, Category: "Peripherals"}
 
+	log.Println("ProductHandler inicializado con 3 productos de prueba")
 	return h
 }
 
 // GetProduct obtiene un producto por su ID.
-// func (h *ProductHandler) GetProduct(ctx context.Context, req *pb.GetProductRequest, rsp *pb.GetProductResponse) error {
-//     return nil
-// }
-
 func (h *ProductHandler) GetProduct(ctx context.Context, req *pb.GetProductRequest, rsp *pb.GetProductResponse) error {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -51,10 +49,6 @@ func (h *ProductHandler) GetProduct(ctx context.Context, req *pb.GetProductReque
 }
 
 // ListProducts lista todos los productos, opcionalmente filtrados por categoría.
-// func (h *ProductHandler) ListProducts(ctx context.Context, req *pb.ListProductsRequest, rsp *pb.ListProductsResponse) error {
-//     return nil
-// }
-
 func (h *ProductHandler) ListProducts(ctx context.Context, req *pb.ListProductsRequest, rsp *pb.ListProductsResponse) error {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -68,10 +62,6 @@ func (h *ProductHandler) ListProducts(ctx context.Context, req *pb.ListProductsR
 }
 
 // CheckStock verifica si hay stock suficiente para una lista de ítems.
-// func (h *ProductHandler) CheckStock(ctx context.Context, req *pb.CheckStockRequest, rsp *pb.CheckStockResponse) error {
-//     return nil
-// }
-
 func (h *ProductHandler) CheckStock(ctx context.Context, req *pb.CheckStockRequest, rsp *pb.CheckStockResponse) error {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -94,10 +84,6 @@ func (h *ProductHandler) CheckStock(ctx context.Context, req *pb.CheckStockReque
 }
 
 // UpdateStock actualiza el stock de un producto (incremento o decremento).
-// func (h *ProductHandler) UpdateStock(ctx context.Context, req *pb.UpdateStockRequest, rsp *pb.UpdateStockResponse) error {
-//     return nil
-// }
-
 func (h *ProductHandler) UpdateStock(ctx context.Context, req *pb.UpdateStockRequest, rsp *pb.UpdateStockResponse) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -122,4 +108,3 @@ func (h *ProductHandler) UpdateStock(ctx context.Context, req *pb.UpdateStockReq
 	rsp.Message = "Stock actualizado correctamente"
 	return nil
 }
-

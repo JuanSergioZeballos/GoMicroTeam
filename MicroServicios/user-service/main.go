@@ -27,17 +27,6 @@ func main() {
 	fmt.Println("=== User Service ===")
 	fmt.Println("Servicio de usuarios y autenticación")
 
-	// TODO (Persona 4): Implementar el servidor Go Micro
-	//
-	//   service := micro.NewService(
-	//       micro.Name("user-service"),
-	//       micro.Version("1.0.0"),
-	//   )
-	//   service.Init()
-	//   pb.RegisterUserServiceHandler(service.Server(), &handler.UserHandler{})
-	//   if err := service.Run(); err != nil {
-	//       log.Fatal(err)
-	//   }
 	service := micro.NewService(
 		micro.Name("user-service"),
 		micro.Version("1.0.0"),
@@ -47,9 +36,9 @@ func main() {
 
 	pb.RegisterUserServiceHandler(service.Server(), handler.NewUserHandler())
 
+	log.Println("User Service iniciado - registrado en service registry")
+
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
 	}
-
-	log.Println("User Service - stub listo para implementación por Persona 4")
 }

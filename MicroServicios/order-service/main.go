@@ -19,34 +19,36 @@ import (
 	"fmt"
 	"log"
 
-	// Descomentar cuando se instalen las dependencias:
-	// "go-micro.dev/v4"
-	// pb "ecommerce-microservices/proto/order"
+	"go-micro.dev/v4"
+
+	"ecommerce-microservices/MicroServicios/order-service/handler"
+	pb "ecommerce-microservices/proto/order"
+	pb_product "ecommerce-microservices/proto/product"
 )
 
 func main() {
 	fmt.Println("=== Order Service ===")
 	fmt.Println("Servicio de gestión de pedidos")
-	fmt.Println("Puerto gRPC: se asigna dinámicamente vía Go Micro")
 
-	// TODO (Persona 3): Implementar el servidor Go Micro
-	//
-	// Pasos esperados:
 	// 1. Crear instancia de micro.NewService con nombre "order-service"
-	// 2. Registrar el handler OrderServiceHandler
-	// 3. Iniciar el servicio con service.Run()
-	//
-	// Ejemplo de estructura:
-	//
-	//   service := micro.NewService(
-	//       micro.Name("order-service"),
-	//       micro.Version("1.0.0"),
-	//   )
-	//   service.Init()
-	//   pb.RegisterOrderServiceHandler(service.Server(), &handler.OrderHandler{})
-	//   if err := service.Run(); err != nil {
-	//       log.Fatal(err)
-	//   }
+	service := micro.NewService(
+		micro.Name("order-service"),
+		micro.Version("1.0.0"),
+	)
 
-	log.Println("Order Service - stub listo para implementación por Persona 3")
+	// 2. Inicializar el servicio (parsea flags de línea de comandos)
+	service.Init()
+
+	// 3. Crear cliente de ProductService para validar stock
+	productClient := pb_product.NewProductService("product-service", service.Client())
+
+	// 4. Registrar el handler OrderServiceHandler con el cliente de ProductService inyectado
+	pb.RegisterOrderServiceHandler(service.Server(), handler.NewOrderHandler(productClient))
+
+	log.Println("Order Service iniciado - registrado en service registry")
+
+	// 5. Iniciar el servicio
+	if err := service.Run(); err != nil {
+		log.Fatal(err)
+	}
 }
