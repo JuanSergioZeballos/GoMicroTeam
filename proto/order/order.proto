@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package order;
+
+option go_package = "./proto/order";
+
+// OrderService - Servicio principal de gestión de pedidos
+// Responsable de crear, listar y actualizar el estado de los pedidos.
+// Se comunica con ProductService para validar stock antes de confirmar un pedido.
+service OrderService {
+    // Crear un nuevo pedido
+    rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+    // Listar todos los pedidos (opcionalmente filtrar por usuario)
+    rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+    // Actualizar el estado de un pedido existente
+    rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns (UpdateOrderStatusResponse);
+    // Obtener un pedido por su ID
+    rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+}
+
+// ---------- Mensajes ----------
+
+message OrderItem {
+    string product_id = 1;
+    string product_name = 2;
+    int32  quantity = 3;
+    double unit_price = 4;
+}
+
+message Order {
+    string id = 1;
+    string user_id = 2;
+    repeated OrderItem items = 3;
+    double total = 4;
+    string status = 5;       // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+    string created_at = 6;
+    string updated_at = 7;
+}
+
+// --- CreateOrder ---
+message CreateOrderRequest {
+    string user_id = 1;
+    repeated OrderItem items = 2;
+}
+
+message CreateOrderResponse {
+    Order order = 1;
+    string message = 2;
+    bool   success = 3;
+}
+
+// --- ListOrders ---
+message ListOrdersRequest {
+    string user_id = 1;   // vacío = todos
+}
+
+message ListOrdersResponse {
+    repeated Order orders = 1;
+}
+
+// --- UpdateOrderStatus ---
+message UpdateOrderStatusRequest {
+    string order_id = 1;
+    string new_status = 2;
+}
+
+message UpdateOrderStatusResponse {
+    Order  order = 1;
+    string message = 2;
+    bool   success = 3;
+}
+
+// --- GetOrder ---
+message GetOrderRequest {
+    string order_id = 1;
+}
+
+message GetOrderResponse {
+    Order order = 1;
+    bool  found = 2;
+}

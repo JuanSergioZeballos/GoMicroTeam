@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "./proto/product";
+
+// ProductService - Servicio de gestión de inventario / catálogo de productos
+// Permite consultar productos, verificar stock y actualizar inventario.
+service ProductService {
+    // Obtener un producto por ID
+    rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+    // Listar todos los productos del catálogo
+    rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+    // Verificar si hay stock suficiente para una lista de ítems
+    rpc CheckStock(CheckStockRequest) returns (CheckStockResponse);
+    // Actualizar el stock de un producto (decrementar al confirmar pedido)
+    rpc UpdateStock(UpdateStockRequest) returns (UpdateStockResponse);
+}
+
+// ---------- Mensajes ----------
+
+message Product {
+    string id = 1;
+    string name = 2;
+    string description = 3;
+    double price = 4;
+    int32  stock = 5;
+    string category = 6;
+}
+
+// --- GetProduct ---
+message GetProductRequest {
+    string product_id = 1;
+}
+
+message GetProductResponse {
+    Product product = 1;
+    bool    found = 2;
+}
+
+// --- ListProducts ---
+message ListProductsRequest {
+    string category = 1;   // vacío = todos
+}
+
+message ListProductsResponse {
+    repeated Product products = 1;
+}
+
+// --- CheckStock ---
+message StockItem {
+    string product_id = 1;
+    int32  quantity = 2;
+}
+
+message CheckStockRequest {
+    repeated StockItem items = 1;
+}
+
+message CheckStockResponse {
+    bool   available = 1;
+    string message = 2;
+    repeated string unavailable_products = 3;
+}
+
+// --- UpdateStock ---
+message UpdateStockRequest {
+    string product_id = 1;
+    int32  quantity_change = 2;   // negativo = decremento, positivo = incremento
+}
+
+message UpdateStockResponse {
+    Product product = 1;
+    bool    success = 2;
+    string  message = 3;
+}

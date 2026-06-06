@@ -1,0 +1,124 @@
+# ============================================================
+# Docker Compose - Plataforma de Microservicios E-Commerce
+# ============================================================
+# Orquesta todos los servicios del sistema:
+#   - etcd:            Service Registry / Discovery
+#   - order-service:   Gestión de pedidos
+#   - product-service: Catálogo e inventario
+#   - user-service:    Usuarios y autenticación
+#   - api-gateway:     Punto de entrada HTTP/REST
+#
+# Uso:
+#   docker-compose up --build        # Construir e iniciar todo
+#   docker-compose up -d             # Modo detached
+#   docker-compose logs -f           # Ver logs en tiempo real
+#   docker-compose down              # Detener todo
+# ============================================================
+
+version: "3.8"
+
+services:
+  # ----------------------------------------------------------
+  # Service Registry — etcd
+  # ----------------------------------------------------------
+  # etcd actúa como service registry y key-value store.
+  # Los microservicios se registran aquí automáticamente al iniciar
+  # y descubren a otros servicios consultando etcd.
+  etcd:
+    image: bitnami/etcd:3.5
+    container_name: etcd
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    networks:
+      - ecommerce-net
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------
+  # Order Service — Gestión de pedidos
+  # ----------------------------------------------------------
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    container_name: order-service
+    environment:
+      - MICRO_REGISTRY=etcd
+      - MICRO_REGISTRY_ADDRESS=etcd:2379
+    depends_on:
+      etcd:
+        condition: service_healthy
+    networks:
+      - ecommerce-net
+    restart: unless-stopped
+
+  # ----------------------------------------------------------
+  # Product Service — Catálogo e inventario
+  # ----------------------------------------------------------
+  product-service:
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
+    container_name: product-service
+    environment:
+      - MICRO_REGISTRY=etcd
+      - MICRO_REGISTRY_ADDRESS=etcd:2379
+    depends_on:
+      etcd:
+        condition: service_healthy
+    networks:
+      - ecommerce-net
+    restart: unless-stopped
+
+  # ----------------------------------------------------------
+  # User Service — Usuarios y autenticación
+  # ----------------------------------------------------------
+  user-service:
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    container_name: user-service
+    environment:
+      - MICRO_REGISTRY=etcd
+      - MICRO_REGISTRY_ADDRESS=etcd:2379
+    depends_on:
+      etcd:
+        condition: service_healthy
+    networks:
+      - ecommerce-net
+    restart: unless-stopped
+
+  # ----------------------------------------------------------
+  # API Gateway — Punto de entrada HTTP/REST
+  # ----------------------------------------------------------
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - MICRO_REGISTRY=etcd
+      - MICRO_REGISTRY_ADDRESS=etcd:2379
+    depends_on:
+      - order-service
+      - product-service
+      - user-service
+    networks:
+      - ecommerce-net
+    restart: unless-stopped
+
+# ----------------------------------------------------------
+# Red compartida
+# ----------------------------------------------------------
+networks:
+  ecommerce-net:
+    driver: bridge
