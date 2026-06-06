@@ -48,6 +48,8 @@ services:
     build:
       context: ..
       dockerfile: MicroServicios/order-service/Dockerfile
+      args:
+        - SERVICE_PATH=./MicroServicios/order-service/main.go
     container_name: order-service
     environment:
       - MICRO_REGISTRY=etcd
@@ -66,6 +68,8 @@ services:
     build:
       context: ..
       dockerfile: MicroServicios/product-service/Dockerfile
+      args:
+        - SERVICE_PATH=./MicroServicios/product-service/main.go
     container_name: product-service
     environment:
       - MICRO_REGISTRY=etcd
@@ -84,6 +88,8 @@ services:
     build:
       context: ..
       dockerfile: MicroServicios/user-service/Dockerfile
+      args:
+        - SERVICE_PATH=./MicroServicios/user-service/main.go
     container_name: user-service
     environment:
       - MICRO_REGISTRY=etcd

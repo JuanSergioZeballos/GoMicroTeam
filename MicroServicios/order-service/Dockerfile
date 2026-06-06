@@ -1,34 +1,29 @@
-# ============================================================
-# Dockerfile genérico para microservicios Go
-# ============================================================
-# Multi-stage build:
-#   1. Etapa de compilación: usa golang:1.21-alpine
-#   2. Etapa de ejecución: usa alpine:3.18 (imagen mínima)
-# ============================================================
-
-# --- Etapa 1: Compilación ---
+# Dockerfile Multietapa para Microservicios Go
 FROM golang:1.21-alpine AS builder
 
+# Instalar git para dependencias
+RUN apk add --no-cache git
+
 WORKDIR /app
 
-# Copiar archivos de dependencias primero (cache de Docker)
-COPY go.mod go.sum* ./
-RUN go mod download 2>/dev/null || true
+# Copiar go.mod y go.sum (si existe)
+COPY go.mod ./
+# Si el archivo go.sum no existe aún, el comando tidy lo creará
+RUN go mod tidy
 
-# Copiar todo el código fuente
+# Copiar el código fuente completo
 COPY . .
 
-# Compilar el servicio
-RUN CGO_ENABLED=0 GOOS=linux go build -o /service ./order-service/
+# Compilar el binario (se pasa la ruta del main como argumento en el compose)
+ARG SERVICE_PATH
+RUN go build -o main ${SERVICE_PATH}
 
-# --- Etapa 2: Ejecución ---
-FROM alpine:3.18
-
+# Etapa final: Imagen ligera
+FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 
-WORKDIR /app
-COPY --from=builder /service .
+WORKDIR /root/
+COPY --from=builder /app/main .
 
-EXPOSE 8080
-
-CMD ["./service"]
+# Exponer puertos dinámicos si es necesario (Go Micro maneja esto)
+CMD ["./main"]
