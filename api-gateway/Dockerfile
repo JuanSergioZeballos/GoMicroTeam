@@ -1,13 +1,14 @@
 FROM golang:1.21-alpine AS builder
+RUN apk add --no-cache git
 WORKDIR /app
-COPY go.mod go.sum* ./
-RUN go mod download 2>/dev/null || true
+COPY go.mod ./
+RUN go mod tidy
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o /service ./api-gateway/
+RUN go build -o main ./api-gateway/main.go
 
-FROM alpine:3.18
+FROM alpine:latest
 RUN apk --no-cache add ca-certificates
-WORKDIR /app
-COPY --from=builder /service .
+WORKDIR /root/
+COPY --from=builder /app/main .
 EXPOSE 8080
-CMD ["./service"]
+CMD ["./main"]
