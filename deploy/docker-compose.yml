@@ -8,7 +8,7 @@
 #   - user-service:    Usuarios y autenticación
 #   - api-gateway:     Punto de entrada HTTP/REST
 #
-# Uso:
+# Uso (ejecutar desde la carpeta deploy/):
 #   docker-compose up --build        # Construir e iniciar todo
 #   docker-compose up -d             # Modo detached
 #   docker-compose logs -f           # Ver logs en tiempo real
@@ -46,8 +46,8 @@ services:
   # ----------------------------------------------------------
   order-service:
     build:
-      context: .
-      dockerfile: order-service/Dockerfile
+      context: ..
+      dockerfile: MicroServicios/order-service/Dockerfile
     container_name: order-service
     environment:
       - MICRO_REGISTRY=etcd
@@ -64,8 +64,8 @@ services:
   # ----------------------------------------------------------
   product-service:
     build:
-      context: .
-      dockerfile: product-service/Dockerfile
+      context: ..
+      dockerfile: MicroServicios/product-service/Dockerfile
     container_name: product-service
     environment:
       - MICRO_REGISTRY=etcd
@@ -82,8 +82,8 @@ services:
   # ----------------------------------------------------------
   user-service:
     build:
-      context: .
-      dockerfile: user-service/Dockerfile
+      context: ..
+      dockerfile: MicroServicios/user-service/Dockerfile
     container_name: user-service
     environment:
       - MICRO_REGISTRY=etcd
@@ -100,7 +100,7 @@ services:
   # ----------------------------------------------------------
   api-gateway:
     build:
-      context: .
+      context: ..
       dockerfile: api-gateway/Dockerfile
     container_name: api-gateway
     ports:
