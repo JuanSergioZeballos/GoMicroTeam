@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Microservicios</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+        }
+
+        .auth-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .auth-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input, select, button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input, select {
+            flex: 1;
+            min-width: 150px;
+            background: #f9f9f9;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button.secondary {
+            background: #764ba2;
+        }
+
+        button.secondary:hover {
+            background: #653a8f;
+        }
+
+        .token-info {
+            background: #e8f4f8;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            font-size: 12px;
+        }
+
+        .token-info.active {
+            display: block;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-card h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .product-card p {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .product-price {
+            font-size: 1.3em;
+            color: #764ba2;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .product-stock {
+            color: #27ae60;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .product-actions button {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .order-card {
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .order-card h3 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .order-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .order-info span {
+            color: #666;
+        }
+
+        .order-info strong {
+            color: #333;
+        }
+
+        .order-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-processing {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-shipped {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .response-box {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .response-box.error {
+            background: #ffe6e6;
+            border-color: #ff6b6b;
+            color: #c92a2a;
+        }
+
+        .response-box.success {
+            background: #e6ffe6;
+            border-color: #51cf66;
+            color: #2f5233;
+        }
+
+        .loading {
+            color: #667eea;
+            font-style: italic;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state p {
+            margin-bottom: 10px;
+        }
+
+        .create-order-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .create-order-form input, 
+        .create-order-form select,
+        .create-order-form button {
+            width: 100%;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛍️ E-Commerce Microservicios</h1>
+            <p id="apiInfo">Conectando a API...</p>
+        </header>
+
+        <!-- Auth Section -->
+        <div class="auth-section">
+            <h2>🔐 Autenticación</h2>
+            <div class="auth-form">
+                <input type="text" id="authUsername" placeholder="Usuario" value="user1">
+                <button onclick="login()">Login</button>
+                <button class="secondary" onclick="logout()">Logout</button>
+            </div>
+            <div class="token-info" id="tokenInfo">
+                ✓ Token: <span id="tokenDisplay"></span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Products Section -->
+            <div class="section">
+                <h2>📦 Productos</h2>
+                <div id="successMsg" class="success-message"></div>
+                <div id="errorMsg" class="error-message"></div>
+                <div id="productsList" class="products-grid">
+                    <div class="empty-state">
+                        <p class="loading">Cargando productos...</p>
+                    </div>
+                </div>
+                <div class="response-box" id="productsResponse" style="display: none;"></div>
+            </div>
+
+            <!-- Orders Section -->
+            <div class="section">
+                <h2>📋 Pedidos</h2>
+                <button onclick="loadOrders()" style="width: 100%; margin-bottom: 15px;">Cargar mis pedidos</button>
+                <div id="ordersList" class="orders-list">
+                    <div class="empty-state">
+                        <p>Inicia sesión y carga tus pedidos</p>
+                    </div>
+                </div>
+                <div class="response-box" id="ordersResponse" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Create Order Section -->
+        <div class="section" style="max-width: 500px; margin: 0 auto 30px;">
+            <h2>➕ Crear Pedido</h2>
+            <div class="create-order-form">
+                <label for="orderProductId">Seleccionar Producto:</label>
+                <select id="orderProductId">
+                    <option value="P1">P1 - Laptop Gamer ($1200)</option>
+                    <option value="P2">P2 - Mouse Wireless ($40)</option>
+                    <option value="P3">P3 - Teclado Mecánico ($90)</option>
+                </select>
+                
+                <label for="orderQuantity">Cantidad:</label>
+                <input type="number" id="orderQuantity" value="1" min="1" max="50">
+                
+                <button onclick="createOrder()" style="margin-top: 10px;">Crear Pedido</button>
+            </div>
+            <div class="response-box" id="createOrderResponse" style="display: none;"></div>
+        </div>
+
+        <!-- User Info Section -->
+        <div class="section" style="max-width: 500px; margin: 0 auto;">
+            <h2>👤 Mi Información</h2>
+            <div class="create-order-form">
+                <input type="text" id="userIdInput" placeholder="ID de usuario" value="user1">
+                <button onclick="getUserInfo()">Obtener información</button>
+            </div>
+            <div class="response-box" id="userInfoResponse" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const isInContainer = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        const API_BASE = isInContainer ? 'http://api-gateway:8080/api/v1' : 'http://localhost:8080/api/v1';
+        let token = localStorage.getItem('token') || null;
+
+        document.getElementById('apiInfo').textContent = `Conectando a: ${API_BASE}`;
+
+        function updateTokenDisplay() {
+            const tokenInfo = document.getElementById('tokenInfo');
+            if (token) {
+                tokenInfo.classList.add('active');
+                document.getElementById('tokenDisplay').textContent = token;
+            } else {
+                tokenInfo.classList.remove('active');
+            }
+        }
+
+        function login() {
+            const username = document.getElementById('authUsername').value;
+            if (!username) {
+                alert('Ingresa un usuario');
+                return;
+            }
+            token = `fake-jwt-token-for-${username}`;
+            localStorage.setItem('token', token);
+            updateTokenDisplay();
+            showSuccess(`✓ Login como ${username}`);
+            loadProducts();
+            loadOrders();
+        }
+
+        function logout() {
+            token = null;
+            localStorage.removeItem('token');
+            updateTokenDisplay();
+            showSuccess('✓ Logout exitoso');
+            document.getElementById('ordersList').innerHTML = '<div class="empty-state"><p>Inicia sesión para ver tus pedidos</p></div>';
+        }
+
+        async function loadProducts() {
+            try {
+                const response = await fetch(`${API_BASE}/products`);
+                const data = await response.json();
+                const productsList = document.getElementById('productsList');
+                productsList.innerHTML = data.products.map(p => `
+                    <div class="product-card">
+                        <h3>${p.name}</h3>
+                        <p>${p.description}</p>
+                        <div class="product-price">$${p.price}</div>
+                        <div class="product-stock">Stock: ${p.stock}</div>
+                        <div class="product-actions">
+                            <button onclick="selectProduct('${p.id}')">Comprar</button>
+                        </div>
+                    </div>
+                `).join('');
+                showSuccess('✓ Productos cargados');
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        function selectProduct(id) {
+            document.getElementById('orderProductId').value = id;
+        }
+
+        async function createOrder() {
+            if (!token) {
+                showError('Inicia sesión primero');
+                return;
+            }
+            const productId = document.getElementById('orderProductId').value;
+            const quantity = parseInt(document.getElementById('orderQuantity').value);
+            if (quantity < 1) {
+                showError('Cantidad debe ser mayor a 0');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE}/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    },
+                    body: JSON.stringify({
+                        user_id: token.split('-').pop(),
+                        items: [{product_id: productId, quantity: quantity}]
+                    })
+                });
+                const data = await response.json();
+                const box = document.getElementById('createOrderResponse');
+                box.textContent = JSON.stringify(data, null, 2);
+                box.classList.remove('error');
+                box.classList.add('success');
+                box.style.display = 'block';
+                showSuccess('✓ Pedido creado');
+                loadOrders();
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        async function loadOrders() {
+            if (!token) {
+                showError('Inicia sesión primero');
+                return;
+            }
+            try {
+                const userId = token.split('-').pop();
+                const response = await fetch(`${API_BASE}/orders?user_id=${userId}`, {
+                    headers: { 'Authorization': token }
+                });
+                const data = await response.json();
+                const ordersList = document.getElementById('ordersList');
+                if (!data.orders || data.orders.length === 0) {
+                    ordersList.innerHTML = '<div class="empty-state"><p>No tienes pedidos aún</p></div>';
+                    return;
+                }
+                ordersList.innerHTML = data.orders.map(order => `
+                    <div class="order-card">
+                        <h3>Pedido #${order.id}</h3>
+                        <div class="order-info">
+                            <div><strong>Total:</strong> $${order.total}</div>
+                            <div><strong>Estado:</strong> <span class="order-status status-${order.status?.toLowerCase()}">${order.status}</span></div>
+                            <div><strong>Creado:</strong> ${order.created_at}</div>
+                        </div>
+                    </div>
+                `).join('');
+                showSuccess('✓ Pedidos cargados');
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        async function getUserInfo() {
+            if (!token) {
+                showError('Inicia sesión primero');
+                return;
+            }
+            const userId = document.getElementById('userIdInput').value;
+            try {
+                const response = await fetch(`${API_BASE}/me/${userId}`, {
+                    headers: { 'Authorization': token }
+                });
+                const data = await response.json();
+                const box = document.getElementById('userInfoResponse');
+                box.textContent = JSON.stringify(data, null, 2);
+                box.style.display = 'block';
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        function showSuccess(msg) {
+            const box = document.getElementById('successMsg');
+            box.textContent = msg;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 3000);
+        }
+
+        function showError(msg) {
+            const box = document.getElementById('errorMsg');
+            box.textContent = msg;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 3000);
+        }
+
+        window.addEventListener('load', () => {
+            updateTokenDisplay();
+            loadProducts();
+        });
+    </script>
+</body>
+</html>

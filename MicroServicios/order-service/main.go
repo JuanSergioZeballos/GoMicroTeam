@@ -20,6 +20,10 @@ import (
 	"log"
 
 	"go-micro.dev/v4"
+	_ "github.com/go-micro/plugins/v4/registry/etcd"
+	_ "github.com/go-micro/plugins/v4/client/grpc"
+	_ "github.com/go-micro/plugins/v4/server/grpc"
+	_ "github.com/go-micro/plugins/v4/transport/grpc"
 
 	"ecommerce-microservices/MicroServicios/order-service/handler"
 	pb "ecommerce-microservices/proto/order"
@@ -31,13 +35,11 @@ func main() {
 	fmt.Println("Servicio de gestión de pedidos")
 
 	// 1. Crear instancia de micro.NewService con nombre "order-service"
-	service := micro.NewService(
+	service := micro.NewService()
+	service.Init(
 		micro.Name("order-service"),
 		micro.Version("1.0.0"),
 	)
-
-	// 2. Inicializar el servicio (parsea flags de línea de comandos)
-	service.Init()
 
 	// 3. Crear cliente de ProductService para validar stock
 	productClient := pb_product.NewProductService("product-service", service.Client())

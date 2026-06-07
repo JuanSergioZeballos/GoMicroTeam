@@ -1,34 +1,13 @@
-# ============================================================
-# Docker Compose - Plataforma de Microservicios E-Commerce
-# ============================================================
-# Orquesta todos los servicios del sistema:
-#   - etcd:            Service Registry / Discovery
-#   - order-service:   Gestión de pedidos
-#   - product-service: Catálogo e inventario
-#   - user-service:    Usuarios y autenticación
-#   - api-gateway:     Punto de entrada HTTP/REST
-#
-# Uso (ejecutar desde la carpeta deploy/):
-#   docker-compose up --build        # Construir e iniciar todo
-#   docker-compose up -d             # Modo detached
-#   docker-compose logs -f           # Ver logs en tiempo real
-#   docker-compose down              # Detener todo
-# ============================================================
-
-version: "3.8"
-
 services:
   # ----------------------------------------------------------
   # Service Registry — etcd
   # ----------------------------------------------------------
-  # etcd actúa como service registry y key-value store.
-  # Los microservicios se registran aquí automáticamente al iniciar
-  # y descubren a otros servicios consultando etcd.
   etcd:
-    image: bitnami/etcd:3.5
+    image: gcr.io/etcd-development/etcd:v3.5.13
     container_name: etcd
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
       - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
     ports:
       - "2379:2379"
@@ -42,18 +21,20 @@ services:
       retries: 5
 
   # ----------------------------------------------------------
-  # Order Service — Gestión de pedidos
+  # Order Service
   # ----------------------------------------------------------
   order-service:
     build:
       context: ..
       dockerfile: MicroServicios/order-service/Dockerfile
-      args:
-        - SERVICE_PATH=./MicroServicios/order-service/main.go
     container_name: order-service
     environment:
       - MICRO_REGISTRY=etcd
       - MICRO_REGISTRY_ADDRESS=etcd:2379
+      - MICRO_TRANSPORT=grpc
+      - MICRO_SERVER=grpc
+      - MICRO_CLIENT=grpc
+      - MICRO_SERVER_NAME=order-service
     depends_on:
       etcd:
         condition: service_healthy
@@ -62,18 +43,20 @@ services:
     restart: unless-stopped
 
   # ----------------------------------------------------------
-  # Product Service — Catálogo e inventario
+  # Product Service
   # ----------------------------------------------------------
   product-service:
     build:
       context: ..
       dockerfile: MicroServicios/product-service/Dockerfile
-      args:
-        - SERVICE_PATH=./MicroServicios/product-service/main.go
     container_name: product-service
     environment:
       - MICRO_REGISTRY=etcd
       - MICRO_REGISTRY_ADDRESS=etcd:2379
+      - MICRO_TRANSPORT=grpc
+      - MICRO_SERVER=grpc
+      - MICRO_CLIENT=grpc
+      - MICRO_SERVER_NAME=product-service
     depends_on:
       etcd:
         condition: service_healthy
@@ -82,18 +65,20 @@ services:
     restart: unless-stopped
 
   # ----------------------------------------------------------
-  # User Service — Usuarios y autenticación
+  # User Service
   # ----------------------------------------------------------
   user-service:
     build:
       context: ..
       dockerfile: MicroServicios/user-service/Dockerfile
-      args:
-        - SERVICE_PATH=./MicroServicios/user-service/main.go
     container_name: user-service
     environment:
       - MICRO_REGISTRY=etcd
       - MICRO_REGISTRY_ADDRESS=etcd:2379
+      - MICRO_TRANSPORT=grpc
+      - MICRO_SERVER=grpc
+      - MICRO_CLIENT=grpc
+      - MICRO_SERVER_NAME=user-service
     depends_on:
       etcd:
         condition: service_healthy
@@ -102,7 +87,7 @@ services:
     restart: unless-stopped
 
   # ----------------------------------------------------------
-  # API Gateway — Punto de entrada HTTP/REST
+  # API Gateway
   # ----------------------------------------------------------
   api-gateway:
     build:
@@ -114,6 +99,10 @@ services:
     environment:
       - MICRO_REGISTRY=etcd
       - MICRO_REGISTRY_ADDRESS=etcd:2379
+      - MICRO_TRANSPORT=grpc
+      - MICRO_SERVER=grpc
+      - MICRO_CLIENT=grpc
+      - MICRO_SERVER_NAME=api-gateway
     depends_on:
       - order-service
       - product-service
@@ -122,9 +111,20 @@ services:
       - ecommerce-net
     restart: unless-stopped
 
-# ----------------------------------------------------------
-# Red compartida
-# ----------------------------------------------------------
+  # ----------------------------------------------------------
+  # Web Frontend
+  # ----------------------------------------------------------
+  web:
+    image: nginx:alpine
+    container_name: web-frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ../index.html:/usr/share/nginx/html/index.html:ro
+    networks:
+      - ecommerce-net
+    restart: unless-stopped
+
 networks:
   ecommerce-net:
     driver: bridge

@@ -151,6 +151,8 @@ func (h *OrderHandler) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 	}
 
 	// 3. Calcular total
+	// NOTA: En una versión productiva, los precios deben validarse contra el ProductService
+	// para evitar manipulaciones desde el cliente/frontend.
 	var total float64
 	for _, item := range req.Items {
 		total += float64(item.Quantity) * item.UnitPrice
@@ -158,6 +160,8 @@ func (h *OrderHandler) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 
 	// 4. Crear el pedido
 	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	h.nextID++
 	orderID := fmt.Sprintf("ORD-%03d", h.nextID)
 	now := time.Now().Format(time.RFC3339)
@@ -172,7 +176,6 @@ func (h *OrderHandler) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 		UpdatedAt: now,
 	}
 	h.orders[orderID] = order
-	h.mu.Unlock()
 
 	log.Printf("Pedido creado: %s (total: %.2f, status: PENDING)", orderID, total)
 

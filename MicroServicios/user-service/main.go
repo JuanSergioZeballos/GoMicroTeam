@@ -19,6 +19,10 @@ import (
 	"fmt"
 	"log"
 	"go-micro.dev/v4"
+	_ "github.com/go-micro/plugins/v4/registry/etcd"
+	_ "github.com/go-micro/plugins/v4/client/grpc"
+	_ "github.com/go-micro/plugins/v4/server/grpc"
+	_ "github.com/go-micro/plugins/v4/transport/grpc"
 	"ecommerce-microservices/MicroServicios/user-service/handler"
 	pb "ecommerce-microservices/proto/user"
 )
@@ -27,12 +31,11 @@ func main() {
 	fmt.Println("=== User Service ===")
 	fmt.Println("Servicio de usuarios y autenticación")
 
-	service := micro.NewService(
+	service := micro.NewService()
+	service.Init(
 		micro.Name("user-service"),
 		micro.Version("1.0.0"),
 	)
-
-	service.Init()
 
 	pb.RegisterUserServiceHandler(service.Server(), handler.NewUserHandler())
 

@@ -1,27 +1,4 @@
 // Package main - API Gateway
-//
-// Punto de entrada HTTP/REST que expone los microservicios internos al exterior.
-// Utiliza Gin como router HTTP y Go Micro como cliente para comunicarse
-// con los servicios internos (Order, Product, User) vía gRPC.
-//
-// Responsabilidades:
-//   - Exponer endpoints REST para clientes externos (frontend, mobile)
-//   - Enrutar peticiones al servicio interno correspondiente
-//   - Middleware de autenticación (validar token del UserService)
-//   - Agregación de respuestas cuando sea necesario
-//
-// Endpoints planificados:
-//   POST   /api/v1/auth/register      → UserService.Register
-//   POST   /api/v1/auth/login          → UserService.Login
-//   GET    /api/v1/users/:id           → UserService.GetUser
-//   GET    /api/v1/products            → ProductService.ListProducts
-//   GET    /api/v1/products/:id        → ProductService.GetProduct
-//   POST   /api/v1/orders              → OrderService.CreateOrder
-//   GET    /api/v1/orders              → OrderService.ListOrders
-//   GET    /api/v1/orders/:id          → OrderService.GetOrder
-//   PATCH  /api/v1/orders/:id/status   → OrderService.UpdateOrderStatus
-//
-// Implementación a cargo de: Persona 5
 package main
 
 import (
@@ -32,7 +9,12 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	"go-micro.dev/v4"
+	_ "github.com/go-micro/plugins/v4/registry/etcd"
+	_ "github.com/go-micro/plugins/v4/client/grpc"
+	_ "github.com/go-micro/plugins/v4/server/grpc"
+	_ "github.com/go-micro/plugins/v4/transport/grpc"
 	
 	pb_order "ecommerce-microservices/proto/order"
 	pb_product "ecommerce-microservices/proto/product"
@@ -50,23 +32,25 @@ func main() {
 	fmt.Println("Gateway HTTP/REST → microservicios gRPC")
 	fmt.Println("Puerto HTTP: 8080")
 
-	// TODO (Persona 5): Implementar el gateway
-	//
-	// Pasos esperados:
-	// 1. Crear servicio Go Micro (web.NewService o micro.NewService)
-	service := micro.NewService(
+	service := micro.NewService()
+	service.Init(
 		micro.Name("api-gateway.client"),
 	)
-	service.Init()
-	// 2. Crear clientes Go Micro para cada servicio:
-	//    - orderClient  = pb_order.NewOrderService("order-service", service.Client())
-	//    - productClient = pb_product.NewProductService("product-service", service.Client())
-	//    - userClient   = pb_user.NewUserService("user-service", service.Client())
 	userClient = pb_user.NewUserService("user-service", service.Client())
 	productClient = pb_product.NewProductService("product-service", service.Client())
 	orderClient = pb_order.NewOrderService("order-service", service.Client())
-	// 3. Configurar router Gin con los endpoints listados arriba
+	
 	r := gin.Default()
+	
+	// Configurar CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+	
 	v1 := r.Group("/api/v1")
 	{
 		auth := v1.Group("/auth")
@@ -81,7 +65,6 @@ func main() {
 			products.GET("/:id", handleGetProduct)
 		}
 
-		// Rutas Protegidas (requieren Token)
 		protected := v1.Group("")
 		protected.Use(AuthMiddleware())
 		{
@@ -96,12 +79,9 @@ func main() {
 			protected.GET("/me/:id", handleGetUser)
 		}
 	}
-	// 4. Iniciar en puerto 8080
 	r.Run(":8080")
 	log.Println("API Gateway iniciado")
 }
-
-// --- Middlewares ---
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -114,8 +94,6 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-// --- Handlers para User Service ---
 
 func handleRegister(c *gin.Context) {
 	var req pb_user.RegisterRequest
@@ -155,8 +133,6 @@ func handleGetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-// --- Handlers para Product Service ---
-
 func handleListProducts(c *gin.Context) {
 	category := c.Query("category")
 	res, err := productClient.ListProducts(context.Background(), &pb_product.ListProductsRequest{Category: category})
@@ -176,8 +152,6 @@ func handleGetProduct(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, res)
 }
-
-// --- Handlers para Order Service ---
 
 func handleCreateOrder(c *gin.Context) {
 	var req pb_order.CreateOrderRequest
@@ -242,4 +216,3 @@ func handleUpdateOrderStatus(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, res)
 }
-

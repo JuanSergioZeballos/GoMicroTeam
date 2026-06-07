@@ -7,6 +7,7 @@ import (
 
 	pb "ecommerce-microservices/proto/order"
 	pb_product "ecommerce-microservices/proto/product"
+
 	"go-micro.dev/v4/client"
 )
 
@@ -50,6 +51,7 @@ func (m *MockProductClient) UpdateStock(ctx context.Context, in *pb_product.Upda
 			Stock: 10,
 		},
 	}, nil
+}
 
 func TestOrderHandler(t *testing.T) {
 	mockProduct := &MockProductClient{

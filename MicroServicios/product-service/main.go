@@ -18,6 +18,10 @@ import (
 	"log"
     "fmt"
 	"go-micro.dev/v4"
+	_ "github.com/go-micro/plugins/v4/registry/etcd"
+	_ "github.com/go-micro/plugins/v4/client/grpc"
+	_ "github.com/go-micro/plugins/v4/server/grpc"
+	_ "github.com/go-micro/plugins/v4/transport/grpc"
 	"ecommerce-microservices/MicroServicios/product-service/handler"
 	pb "ecommerce-microservices/proto/product"
 )
@@ -25,12 +29,11 @@ import (
 func main() {
 	fmt.Println("=== Product Service ===")
 	fmt.Println("Servicio de catálogo e inventario")
-	service := micro.NewService(
+	service := micro.NewService()
+	service.Init(
 		micro.Name("product-service"),
 		micro.Version("1.0.0"),
 	)
-
-	service.Init()
 
 	pb.RegisterProductServiceHandler(service.Server(), handler.NewProductHandler())
 
