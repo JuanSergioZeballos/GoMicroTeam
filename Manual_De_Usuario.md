@@ -1,7 +1,6 @@
 # Manual de Usuario
 ## E-commerce Microservices Platform — GoMicroTeam
 
-> **Documento de entrega formal**
 > Plataforma de comercio electrónico construida sobre una arquitectura de microservicios.
 > Este manual describe las tecnologías empleadas, la instalación y puesta en marcha, las
 > funcionalidades disponibles y el flujo de trabajo recomendado para el uso del sistema.
@@ -66,7 +65,7 @@ El sistema se compone de seis contenedores que cooperan en una red interna:
 | **api-gateway**   | Fachada REST que traduce HTTP → gRPC                                 | 8080   |
 | **web-frontend**  | Interfaz web del cliente (Nginx)                                     | 3000   |
 
-**Diagrama de flujo (resumen):**
+**Diagrama de flujo:**
 
 ```
    Navegador / Cliente
@@ -169,28 +168,28 @@ Abra el navegador en **http://localhost:3000** (interfaz web).
 
 La interfaz web (http://localhost:3000) organiza las funciones en las siguientes secciones:
 
-### 7.1 🔐 Autenticación
+### 7.1 Autenticación
 - **Registro** de nuevos usuarios (nombre, email, contraseña). Los usuarios nuevos reciben el
   rol `CUSTOMER`.
 - **Login** con email y contraseña. Devuelve un token de sesión necesario para operar con pedidos.
 
-### 7.2 📦 Productos
+### 7.2 Productos
 - **Listado del catálogo** con nombre, descripción, precio, stock y categoría.
 - **Consulta de un producto** específico por su identificador.
 
-### 7.3 ➕ Crear Pedido
+### 7.3 Crear Pedido
 - Selección de productos y cantidades.
 - Al crear el pedido, el sistema **verifica automáticamente el stock** (`CheckStock`) y, si hay
   disponibilidad, **descuenta las unidades** (`UpdateStock`) mediante comunicación gRPC interna.
 - El pedido se crea en estado `PENDING`.
 
-### 7.4 📋 Pedidos
+### 7.4 Pedidos
 - **Listado de pedidos** (todos o filtrados por usuario).
 - **Consulta de un pedido** por su ID.
 - **Cambio de estado** del pedido a lo largo de su ciclo de vida:
   `PENDING → CONFIRMED → SHIPPED → DELIVERED` (o `CANCELLED`).
 
-### 7.5 👤 Mi Información
+### 7.5 Mi Información
 - Consulta del **perfil del usuario** autenticado (ID, nombre, email, rol).
 
 ---
