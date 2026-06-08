@@ -82,15 +82,21 @@
             font-weight: 600;
         }
 
-        button:hover {
+        button:hover:not(:disabled) {
             background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
         }
 
         button.secondary {
             background: #764ba2;
         }
 
-        button.secondary:hover {
+        button.secondary:hover:not(:disabled) {
             background: #653a8f;
         }
 
@@ -153,6 +159,11 @@
             box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
         }
 
+        .product-card.sin-stock {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
+
         .product-card h3 {
             color: #667eea;
             margin-bottom: 8px;
@@ -179,6 +190,18 @@
             margin-bottom: 10px;
         }
 
+        .product-stock.agotado {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .stock-warning {
+            color: #e74c3c;
+            font-size: 12px;
+            margin: 8px 0;
+            font-weight: bold;
+        }
+
         .product-actions {
             display: flex;
             gap: 8px;
@@ -194,6 +217,19 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+        }
+
+        .total-general {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .total-general strong {
+            font-size: 1.2em;
+            color: #667eea;
         }
 
         .order-card {
@@ -251,6 +287,21 @@
         .status-delivered {
             background: #d4edda;
             color: #155724;
+        }
+
+        .order-items {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 3px;
+        }
+
+        .order-item {
+            font-size: 12px;
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 3px;
         }
 
         .response-box {
@@ -340,7 +391,6 @@
             <p id="apiInfo">Conectando a API...</p>
         </header>
 
-        <!-- Auth Section -->
         <div class="auth-section">
             <h2>🔐 Autenticación</h2>
             <div class="auth-form">
@@ -353,9 +403,7 @@
             </div>
         </div>
 
-        <!-- Main Content -->
         <div class="content">
-            <!-- Products Section -->
             <div class="section">
                 <h2>📦 Productos</h2>
                 <div id="successMsg" class="success-message"></div>
@@ -365,10 +413,8 @@
                         <p class="loading">Cargando productos...</p>
                     </div>
                 </div>
-                <div class="response-box" id="productsResponse" style="display: none;"></div>
             </div>
 
-            <!-- Orders Section -->
             <div class="section">
                 <h2>📋 Pedidos</h2>
                 <button onclick="loadOrders()" style="width: 100%; margin-bottom: 15px;">Cargar mis pedidos</button>
@@ -377,11 +423,9 @@
                         <p>Inicia sesión y carga tus pedidos</p>
                     </div>
                 </div>
-                <div class="response-box" id="ordersResponse" style="display: none;"></div>
             </div>
         </div>
 
-        <!-- Create Order Section -->
         <div class="section" style="max-width: 500px; margin: 0 auto 30px;">
             <h2>➕ Crear Pedido</h2>
             <div class="create-order-form">
@@ -391,16 +435,12 @@
                     <option value="P2">P2 - Mouse Wireless ($40)</option>
                     <option value="P3">P3 - Teclado Mecánico ($90)</option>
                 </select>
-                
                 <label for="orderQuantity">Cantidad:</label>
                 <input type="number" id="orderQuantity" value="1" min="1" max="50">
-                
                 <button onclick="createOrder()" style="margin-top: 10px;">Crear Pedido</button>
             </div>
-            <div class="response-box" id="createOrderResponse" style="display: none;"></div>
         </div>
 
-        <!-- User Info Section -->
         <div class="section" style="max-width: 500px; margin: 0 auto;">
             <h2>👤 Mi Información</h2>
             <div class="create-order-form">
@@ -415,6 +455,7 @@
         const isInContainer = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
         const API_BASE = isInContainer ? 'http://api-gateway:8080/api/v1' : 'http://localhost:8080/api/v1';
         let token = localStorage.getItem('token') || null;
+        const PRECIOS = { 'P1': 1200, 'P2': 40, 'P3': 90 };
 
         document.getElementById('apiInfo').textContent = `Conectando a: ${API_BASE}`;
 
@@ -455,17 +496,22 @@
                 const response = await fetch(`${API_BASE}/products`);
                 const data = await response.json();
                 const productsList = document.getElementById('productsList');
-                productsList.innerHTML = data.products.map(p => `
-                    <div class="product-card">
-                        <h3>${p.name}</h3>
-                        <p>${p.description}</p>
-                        <div class="product-price">$${p.price}</div>
-                        <div class="product-stock">Stock: ${p.stock}</div>
-                        <div class="product-actions">
-                            <button onclick="selectProduct('${p.id}')">Comprar</button>
+                productsList.innerHTML = data.products.map(p => {
+                    const stock = p.stock || 0;
+                    const sinStock = stock <= 0;
+                    return `
+                        <div class="product-card ${sinStock ? 'sin-stock' : ''}">
+                            <h3>${p.name}</h3>
+                            <p>${p.description}</p>
+                            <div class="product-price">$${p.price}</div>
+                            <div class="product-stock ${sinStock ? 'agotado' : ''}">Stock: ${stock}</div>
+                            ${sinStock ? '<div class="stock-warning">⚠️ Sin stock</div>' : ''}
+                            <div class="product-actions">
+                                <button onclick="selectProduct('${p.id}')" ${sinStock ? 'disabled' : ''}>Comprar</button>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
                 showSuccess('✓ Productos cargados');
             } catch (error) {
                 showError('Error: ' + error.message);
@@ -500,16 +546,35 @@
                     })
                 });
                 const data = await response.json();
-                const box = document.getElementById('createOrderResponse');
-                box.textContent = JSON.stringify(data, null, 2);
-                box.classList.remove('error');
-                box.classList.add('success');
-                box.style.display = 'block';
-                showSuccess('✓ Pedido creado');
-                loadOrders();
+                
+                if (data.message && data.message.includes('Stock insuficiente')) {
+                    showError('❌ ' + data.message);
+                    loadProducts();
+                } else if (data.success === false) {
+                    showError('❌ Error: ' + data.message);
+                } else {
+                    showSuccess('✓ Pedido creado exitosamente');
+                    loadOrders();
+                    loadProducts();
+                }
             } catch (error) {
                 showError('Error: ' + error.message);
             }
+        }
+
+        function calcularTotal(order) {
+            if (order.total || order.Total) {
+                return parseFloat(order.total || order.Total);
+            }
+            if (order.items && order.items.length > 0) {
+                return order.items.reduce((sum, item) => {
+                    const productId = item.product_id || item.productId;
+                    const precio = PRECIOS[productId] || 0;
+                    const qty = item.quantity || item.Quantity || 1;
+                    return sum + (precio * qty);
+                }, 0);
+            }
+            return 0;
         }
 
         async function loadOrders() {
@@ -524,20 +589,46 @@
                 });
                 const data = await response.json();
                 const ordersList = document.getElementById('ordersList');
+                
                 if (!data.orders || data.orders.length === 0) {
                     ordersList.innerHTML = '<div class="empty-state"><p>No tienes pedidos aún</p></div>';
                     return;
                 }
-                ordersList.innerHTML = data.orders.map(order => `
-                    <div class="order-card">
-                        <h3>Pedido #${order.id}</h3>
-                        <div class="order-info">
-                            <div><strong>Total:</strong> $${order.total}</div>
-                            <div><strong>Estado:</strong> <span class="order-status status-${order.status?.toLowerCase()}">${order.status}</span></div>
-                            <div><strong>Creado:</strong> ${order.created_at}</div>
+                
+                let totalGeneral = 0;
+                data.orders.forEach(order => {
+                    totalGeneral += calcularTotal(order);
+                });
+                
+                let html = `<div class="total-general"><strong>💰 Total General: $${totalGeneral.toFixed(2)}</strong></div>`;
+                
+                html += data.orders.map(order => {
+                    const orderTotal = calcularTotal(order);
+                    const itemsHtml = order.items ? order.items.map(item => {
+                        const productId = item.product_id || item.productId;
+                        const precio = PRECIOS[productId] || 0;
+                        const qty = item.quantity || item.Quantity || 1;
+                        const subtotal = precio * qty;
+                        return `<div class="order-item">${productId} x${qty} = $${subtotal}</div>`;
+                    }).join('') : '';
+                    
+                    return `
+                        <div class="order-card">
+                            <h3>Pedido #${order.id}</h3>
+                            <div class="order-info">
+                                <div><strong>Total:</strong> $${orderTotal.toFixed(2)}</div>
+                                <div><strong>Estado:</strong> <span class="order-status status-${(order.status || order.Status || 'pending').toLowerCase()}">${order.status || order.Status}</span></div>
+                                <div><strong>Creado:</strong> ${order.created_at || order.createdAt || 'N/A'}</div>
+                            </div>
+                            <div class="order-items">
+                                <strong>Items:</strong>
+                                ${itemsHtml}
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
+                
+                ordersList.innerHTML = html;
                 showSuccess('✓ Pedidos cargados');
             } catch (error) {
                 showError('Error: ' + error.message);
